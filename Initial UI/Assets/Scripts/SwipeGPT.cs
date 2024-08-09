@@ -7,9 +7,24 @@ public class SwipeDetector : MonoBehaviour
     private Vector2 touchStartPos;
     private Vector2 touchEndPos;
     private float swipeThreshold = 50f; // Minimum distance for a swipe
+    private GameObject player;
+    private Fighter fighter;
 
     void Update()
     {
+        if (player == null)
+        {
+            player = GameObject.FindWithTag("Player");
+            if (player != null)
+            {
+                fighter = player.GetComponent<Fighter>();
+            }
+            else
+            {
+                Debug.Log("Looking for player...");
+                return; // Exit Update if player is not detected
+            }
+        }
         if (Input.touchCount > 0)
         {
             Touch touch = Input.GetTouch(0);
@@ -84,29 +99,74 @@ public class SwipeDetector : MonoBehaviour
             return; // Not a swipe
         }
 
-        float x = swipeDelta.x;
-        float y = swipeDelta.y;
-
-        if (Mathf.Abs(x) > Mathf.Abs(y))
+        float angle = Mathf.Atan2(swipeDelta.y, swipeDelta.x) * Mathf.Rad2Deg;
+        if (fighter.isAlive && !fighter.isAttacking)
         {
-            if (x > 0)
+            if (angle >= 67.5f && angle < 112.5f)
             {
-                Debug.Log("Swipe Right");
+                fighter.jump();
             }
-            else
+            else if (angle >= 112.5f && angle < 157.5f)
             {
-                Debug.Log("Swipe Left");
+                if (!fighter.inFront)
+                {
+                    fighter.StrongSlash();
+                }
             }
-        }
-        else
-        {
-            if (y > 0)
+            else if (angle >= 22.5f && angle < 67.5f)
             {
-                Debug.Log("Swipe Up");
+                if (fighter.inFront)
+                {
+                    fighter.StrongSlash();
+                }
             }
-            else
+            else if (angle >= -22.5f && angle < 22.5f)
             {
-                Debug.Log("Swipe Down");
+                if (fighter.inFront)
+                {
+                    fighter.MoveForth();
+                }
+                else {
+                    fighter.MoveBack();
+                }
+            }
+            else if (angle >= -67.5f && angle < -22.5f)
+            {
+                if (!fighter.inFront)
+                {
+                    fighter.WideSlash();
+                }
+                else
+                {
+                    fighter.QuickSlash();
+                }
+            }
+            else if (angle >= -112.5f && angle < -67.5f)
+            {
+                Debug.Log("Parry");
+                fighter.parry();
+            }
+            else if (angle >= -157.5f && angle < -112.5f)
+            {
+                if (fighter.inFront)
+                {
+                    fighter.WideSlash();
+                }
+                else
+                {
+                    fighter.QuickSlash();
+                }
+            }
+            else if ((angle >= 157.5f && angle <= 180f) || (angle >= -180f && angle < -157.5f))
+            {
+                if (!fighter.inFront)
+                {
+                    fighter.MoveForth();
+                }
+                else
+                {
+                    fighter.MoveBack();
+                }
             }
         }
     }

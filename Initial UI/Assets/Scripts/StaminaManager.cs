@@ -4,25 +4,49 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-
 public class StaminaManager : MonoBehaviour
 {
     public Image staminaBar;
     public float staminaAmount = 100f;
 
     public GameObject gameOverPanel; // Reference to the Game Over panel
-    // Start is called before the first frame update
+
+    private GameObject player;
+    private CharacterStats characterStats;
+
     void Start()
     {
-        /*if (gameOverPanel != null)
+        if (gameOverPanel != null)
         {
-            gameOverPanel.SetActive(true);
-        }*/
+            gameOverPanel.SetActive(false);
+        }
     }
 
     // Update is called once per frame
     void Update()
     {
+        if (player == null)
+        {
+            player = GameObject.FindWithTag("Player");
+            if (player != null)
+            {
+                characterStats = player.GetComponent<CharacterStats>();
+            }
+            else
+            {
+                Debug.Log("Looking for player...");
+                return; // Exit Update if player is not detected
+            }
+        }
+
+        if (characterStats != null)
+        {
+            float maxStamina = characterStats.maxStamina;
+            float currentStamina = characterStats.currentStamina;
+            staminaAmount = (currentStamina / maxStamina) * 100f;
+            staminaBar.fillAmount = staminaAmount / 100f;
+        }
+
         if (staminaAmount <= 0)
         {
             if (gameOverPanel != null)
@@ -30,24 +54,5 @@ public class StaminaManager : MonoBehaviour
                 gameOverPanel.SetActive(true);
             }
         }
-        if (Input.GetKeyDown(KeyCode.Return))
-        {
-            TakeDamage(20);
-        }
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            Heal(20);
-        }
-    }
-    public void TakeDamage(float damage)
-    {
-        staminaAmount -= damage;
-        staminaBar.fillAmount = staminaAmount / 100f;
-    }
-    public void Heal(float amount)
-    {
-        staminaAmount += amount;
-        staminaAmount = Mathf.Clamp(staminaAmount, 0, 100);
-        staminaBar.fillAmount = staminaAmount / 100f;
     }
 }
